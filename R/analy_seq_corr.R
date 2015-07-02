@@ -21,10 +21,10 @@ CalcD <- function(n, u, r, f, q, a = 4) {
   x[2]
 }
 
-CalcP2 <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
+calcP <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
   alpha = a/(a - 1);
   d = CalcD(n, u, r, f, q2, a)
-  h1 = r*f*(1 - exp(-x/f))
+  h1 = ifelse(x <= f, r*x, r*f)
   h2 = r*f - h1
 
   # S matrix elements.
@@ -66,7 +66,36 @@ CalcP2 <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
   K = K1 + K2
 
   Sol = -solve(K) %*% (kronecker(B1, P1) + kronecker(B0, P0))
-  Sol[3]
+  Sol
+}
+
+CalcP2 <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
+  calcP(n, u, r, f, q2, q3, q4, x, a)[3]
+}
+
+CalcP3 <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
+  calcP(n, u, r, f, q2, q3, q4, x, a)[6]
+}
+
+CalcP4 <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
+  calcP(n, u, r, f, q2, q3, q4, x, a)[9]
+}
+
+CalcPXY <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
+  P <- calcP(n, u, r, f, q2, q3, q4, x, a)
+  p2 <- P[3]
+  p3 <- P[6]
+  p4 <- P[9]
+  np <- n*(n-1)/2
+  pxy <- 1/np * p2 + 2*(n - 2)/np * p3 + (n - 2)*(n - 3)/(2*np)*p4;
+  return(pxy)
+}
+
+CalculateSCOV <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
+  p2 <- CalcP2(n, u, r, f, q2, q3, q4, x, a)
+  pxy <- CalcPXY(n, u, r, f, q2, q3, q4, x, a)
+  scov <- p2 - pxy
+  scov
 }
 
 CalcCt <- function(n, u, r, f, q2, q3, q4, x, a = 4) {
